@@ -8,9 +8,9 @@ const league_bot = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
-commandHandler(client);
+commandHandler(league_bot);
 
-league_bot.once('ready', () => {
+league_bot.once('clientReady', () => {
     console.log(`Logged in as ${league_bot.user.tag}`);
 });
 
