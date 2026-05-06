@@ -1,35 +1,38 @@
-require('dotenv').config();
+require('dotenv').config()
 
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const connectDB = require('./config/db');
-const commandHandler = require('./handlers/commandHandler');
+const { Client, GatewayIntentBits, Collection } = require('discord.js')
+const connectDB = require('./config/db')
+const commandHandler = require('./handlers/commandHandler')
+const logger = require('./utils/logger')
 
 const league_bot = new Client({
     intents: [GatewayIntentBits.Guilds]
-});
+})
 
-commandHandler(league_bot);
+commandHandler(league_bot)
 
 league_bot.once('clientReady', () => {
-    console.log(`Logged in as ${league_bot.user.tag}`);
-});
+    logger.info(`Logged in as ${league_bot.user.tag}`)
+})
 
 league_bot.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) return
 
-    const command = league_bot.commands.get(interaction.commandName);
+    const command = league_bot.commands.get(interaction.commandName)
 
-    if (!command) return;
+    if (!command) return
+
+    logger.info(`${command.commandName}`)
 
     try {
-        await command.execute(interaction);
+        await command.execute(interaction)
     } catch (e) {
-        console.error(e);
-        await interaction.reply({ content: 'Error executing command.', ephemeral: true });
+        logger.error(e)
+        await interaction.reply({ content: 'Error executing command.', ephemeral: true })
     }
-});
+})
 
 (async () => {
-    await connectDB();
-    await league_bot.login(process.env.DISCORD_TOKEN);
-})();
+    await connectDB()
+    await league_bot.login(process.env.DISCORD_TOKEN)
+})()

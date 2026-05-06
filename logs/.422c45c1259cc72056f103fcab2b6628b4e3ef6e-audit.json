@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": false,
+        "amount": 10
+    },
+    "auditLog": "logs\\.422c45c1259cc72056f103fcab2b6628b4e3ef6e-audit.json",
+    "files": [
+        {
+            "date": 1778092064683,
+            "name": "logs\\league-bot-error_2026-05-06.log",
+            "hash": "36af251914ddca5007690184dea669333587f6cdbb460220b236f028df339613"
+        }
+    ],
+    "hashType": "sha256"
+}
