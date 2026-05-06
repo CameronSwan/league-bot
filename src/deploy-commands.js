@@ -1,19 +1,34 @@
 require('dotenv').config();
 
-const { REST, Routes, SlashCommandBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+const { REST, Routes } = require('discord.js');
 
-const commands = [
-  new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Replies with Pong!')
-    .toJSON()
-];
+const commands = [];
+const commandsPath = path.join(__dirname, 'commands');
+
+const loadCommands = (dir) => {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+
+    if (fs.lstatSync(fullPath).isDirectory()) {
+      loadCommands(fullPath);
+    } else if (file.endsWith('.js')) {
+      const command = require(fullPath);
+      commands.push(command.data.toJSON());
+    }
+  }
+};
+
+loadCommands(commandsPath);
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
-    console.log('Registering commands...');
+    console.log('Deploying commands...');
 
     await rest.put(
       Routes.applicationGuildCommands(
@@ -23,7 +38,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
       { body: commands }
     );
 
-    console.log(`${commands.length} command(s) registered.`);
+    console.log('Commands deployed!');
   } catch (error) {
     console.error(error);
   }
