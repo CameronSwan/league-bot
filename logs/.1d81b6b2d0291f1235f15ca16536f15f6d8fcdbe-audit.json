@@ -9,6 +9,11 @@
             "date": 1778094539342,
             "name": "logs\\league-bot-primary_2026-05-06.log",
             "hash": "1f400c9c3afd5855825db4682279ab982db77bf8a2ebb8fc6202f731abff1776"
+        },
+        {
+            "date": 1778193163842,
+            "name": "logs\\league-bot-primary_2026-05-07.log",
+            "hash": "2b31ce5836f478f2429c5d80b3d14754aadd158a292d08e04e255d815ea73337"
         }
     ],
     "hashType": "sha256"

@@ -3,17 +3,57 @@ require('dotenv').config()
 const { Client, GatewayIntentBits, Collection } = require('discord.js')
 const connectDB = require('./config/db')
 const commandHandler = require('./handlers/commandHandler')
-const logger = require('./utils/logger')
+const logger = require('./utils/logger')('API')
 
 const league_bot = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
+    ],
 })
 
 commandHandler(league_bot)
 
 league_bot.once('clientReady', () => {
-    logger.info(`Logged in as ${league_bot.user.tag}`)
+    logger.info('Client connected to server.', {
+        type: 'SYSTEM',
+    })
 })
+
+league_bot.on('messageCreate', (message) => {
+    if (message.author.bot) return
+
+    logger.info(message.content, {
+        type: 'MESSAGE',
+        user: message.author.displayName,
+        channel: message.channel?.name || 'Direct Message',
+    })
+})
+
+league_bot.on('voiceStateUpdate', (oldState, newState) => {
+
+    const user = newState.member?.displayName || newState.member?.user.tag;
+
+    // LEAVE (or move out of a channel)
+    if (oldState.channel && (!newState.channel || oldState.channel.id !== newState.channel.id)) {
+        logger.info('', {
+            type: 'VOICE_LEAVE',
+            channel: oldState.channel.name,
+            user: newState.member?.displayName,
+        });
+    }
+
+    // JOIN (or move into a channel)
+    if (newState.channel && (!oldState.channel || oldState.channel.id !== newState.channel.id)) {
+        logger.info('', {
+            type: 'VOICE_JOIN',
+            channel: newState.channel.name,
+            user: newState.member?.displayName,
+        });
+    }
+});
 
 league_bot.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return
@@ -22,15 +62,22 @@ league_bot.on('interactionCreate', async interaction => {
 
     if (!command) return
 
-    logger.info(`${command.commandName}`)
+    logger.info('', {
+        type: 'COMMAND',
+        channel: interaction.channel?.name || 'Direct Message',
+        user: interaction.user.displayName,
+        command: interaction.commandName,
+    })
 
     try {
         await command.execute(interaction)
     } catch (e) {
-        logger.error(e)
+        log.error(e, {
+            location: 'Execute Command.',
+        })
         await interaction.reply({ content: 'Error executing command.', ephemeral: true })
     }
-})
+});
 
 (async () => {
     await connectDB()

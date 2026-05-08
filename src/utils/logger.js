@@ -1,51 +1,35 @@
-const winston = require('winston')
-const fs = require('fs')
-require('winston-daily-rotate-file')
+const winston = require('winston');
 
-const { combine, timestamp, printf, colorize } = winston.format
-const logDir = process.env.LOG_DIR_NAME || 'logs'
-const maxFiles = process.env.MAX_LOG_FILES ? isNaN(process.env.MAX_LOG_FILES) ? process.env.MAX_LOG_FILES : parseInt(process.env.MAX_LOG_FILES) : 10
+const createLogger = (source) => {
+    return winston.createLogger({
+        level: 'debug',
+        format: winston.format.combine(
+            winston.format.label({ label: source}),
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.errors({ stack: true }),
+            winston.format.colorize(),
+            winston.format.printf(({ timestamp, label, level, message, stack, ...meta }) => {
 
-if (!fs.existsSync(logDir)) fs.mkdirSync(logDir)
+                let logString = `[${timestamp}]`
+                logString = logString += ` [${level}]`
+                logString = logString += ` [${label}]`.padEnd(12, ' ')
 
-const consoleLogTransport = new winston.transports.Console({
-    format: combine(
-        colorize(),
-        printf(({ level, message, timestamp }) => {
-            return `[${timestamp}] ${level}: ${message}\n`
-        }),
-    ),
-    level: process.env.CONSOLE_LOG_LEVEL || 'debug',
-})
+                if (meta.type) logString += `[${meta.type}]`.padEnd(14, ' ')
+                else if (meta.channel && meta.type === 'VOICE') logString += 'Voice '
+                if (meta.channel) logString += `Channel: ${meta.channel} | `
+                if (meta.user) logString += `User: ${meta.user}`
+                if (meta.user && (meta.command || message)) logString += ' | '
+                if (meta.command) logString += `Command: /${meta.command}`
+                if (meta.command && message) logString += ' | '
+                if (message) logString += `${message}`
 
-const primaryLogTransport = new winston.transports.DailyRotateFile({
-    filename: `${logDir}/${process.env.PRIMARY_LOG_FILE_NAME || 'league-bot-primary'}_%DATE%.log`,
-    datePattern: process.env.DATE_PATTERN || 'YYYY-MM-DD',
-    zippedArchive: false,
-    maxSize: process.env.LOG_FILE_MAX_SIZE || '7m',
-    maxFiles: maxFiles,
-})
+                return logString
+            })
+        ),
+        transports: [
+            new winston.transports.Console()
+        ]
+    });
+}
 
-const errorLogTransport = new winston.transports.DailyRotateFile({
-    filename: `${logDir}/${process.env.ERROR_LOG_FILE_NAME || 'league-bot-error'}_%DATE%.log`,
-    datePattern: process.env.DATE_PATTERN || 'YYYY-MM-DD',
-    zippedArchive: false,
-    maxSize: process.env.LOG_FILE_MAX_SIZE || '7m',
-    maxFiles: maxFiles,
-    level: 'error',
-})
-
-const logger = winston.createLogger({
-    level: 'info',
-    format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.errors({ stack: true }),
-    ),
-    transports: [
-        consoleLogTransport,
-        primaryLogTransport,
-        errorLogTransport,
-    ],
-})
-
-module.exports = logger
+module.exports = createLogger;
