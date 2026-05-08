@@ -1,7 +1,6 @@
 const winston = require('winston')
 const fs = require('fs')
 const path = require('path')
-const { info } = require('console')
 require('winston-daily-rotate-file')
 
 const createLogger = (source) => {
@@ -13,10 +12,12 @@ const createLogger = (source) => {
         winston.format.printf(({ timestamp, label, level, message, stack, ...meta }) => {
 
             let logString = `[${timestamp}]`
-            logString += ` [${level}]`
-            logString += ` [${label}]`.padEnd(12, ' ')
-
+            logString += ` [${level}]`.padEnd(21, ' ')
+            logString += `[${label}]`.padEnd(12, ' ')
             if (meta.type) logString += `[${meta.type}]`.padEnd(14, ' ')
+
+            if (stack) return logString += `${stack}`
+
             if (meta.channel) logString += `Channel: ${meta.channel} | `
             if (meta.user) logString += `User: ${meta.user}`
             if (meta.user && (meta.command || message)) logString += ' | '

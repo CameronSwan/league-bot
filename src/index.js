@@ -72,8 +72,8 @@ league_bot.on('interactionCreate', async interaction => {
     try {
         await command.execute(interaction)
     } catch (e) {
-        log.error(e, {
-            location: 'Execute Command.',
+        logger.error(e, {
+            type:'SYSTEM',
         })
         await interaction.reply({ content: 'Error executing command.', ephemeral: true })
     }
@@ -81,5 +81,20 @@ league_bot.on('interactionCreate', async interaction => {
 
 (async () => {
     await connectDB()
-    await league_bot.login(process.env.DISCORD_TOKEN)
+    try {
+        logger.info('Attempting to connect to server...', {
+            type: 'SYSTEM',
+        })
+        await league_bot.login(process.env.DISCORD_TOKEN)
+    } catch (e) {
+        logger.error(e, {
+            type:'SYSTEM',
+        })
+        setTimeout(() => {
+            logger.info('Client shutting down.', {
+                type: 'SYSTEM',
+            })
+            process.exit(1)
+        }, 500)
+    }
 })()
