@@ -4,6 +4,7 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js')
 const connectDB = require('./config/db')
 const commandHandler = require('./handlers/commandHandler')
 const logger = require('./utils/logger')('API')
+const handleError = require('./utils/handleError')
 
 const league_bot = new Client({
     intents: [
@@ -72,29 +73,29 @@ league_bot.on('interactionCreate', async interaction => {
     try {
         await command.execute(interaction)
     } catch (e) {
-        logger.error(e, {
-            type:'SYSTEM',
-        })
+        await handleError(e, logger)
         await interaction.reply({ content: 'Error executing command.', ephemeral: true })
     }
 });
 
 (async () => {
-    await connectDB()
+    try {
+        logger.info('Attempting to connect to database...', {
+            type: 'SYSTEM',
+        })
+        await connectDB()
+        logger.info('Database connection successful.', {
+            type: 'SYSTEM'
+        })
+    } catch (e) {
+        await handleError(e, logger, true)
+    }
     try {
         logger.info('Attempting to connect to server...', {
             type: 'SYSTEM',
         })
         await league_bot.login(process.env.DISCORD_TOKEN)
     } catch (e) {
-        logger.error(e, {
-            type:'SYSTEM',
-        })
-        setTimeout(() => {
-            logger.info('Client shutting down.', {
-                type: 'SYSTEM',
-            })
-            process.exit(1)
-        }, 500)
+        await handleError(e, logger, true)
     }
 })()
