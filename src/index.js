@@ -37,7 +37,6 @@ league_bot.on('voiceStateUpdate', (oldState, newState) => {
 
     const user = newState.member?.displayName || newState.member?.user.tag;
 
-    // LEAVE (or move out of a channel)
     if (oldState.channel && (!newState.channel || oldState.channel.id !== newState.channel.id)) {
         logger.info('', {
             type: 'VOICE_LEAVE',
@@ -46,7 +45,6 @@ league_bot.on('voiceStateUpdate', (oldState, newState) => {
         });
     }
 
-    // JOIN (or move into a channel)
     if (newState.channel && (!oldState.channel || oldState.channel.id !== newState.channel.id)) {
         logger.info('', {
             type: 'VOICE_JOIN',
@@ -79,17 +77,7 @@ league_bot.on('interactionCreate', async interaction => {
 });
 
 (async () => {
-    try {
-        logger.info('Attempting to connect to database...', {
-            type: 'SYSTEM',
-        })
-        await connectDB()
-        logger.info('Database connection successful.', {
-            type: 'SYSTEM'
-        })
-    } catch (e) {
-        await handleError(e, logger, true)
-    }
+    await connectDB()
     try {
         logger.info('Attempting to connect to server...', {
             type: 'SYSTEM',
