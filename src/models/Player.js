@@ -13,9 +13,9 @@ const contactSchema = new mongoose.Schema(
         },
         isPrimary: {
             type: Boolean,
-            required: true,
+            default: false,
         },
-    }, {_id: false}
+    }
 )
 
 const infractionSchema = new mongoose.Schema(
@@ -25,7 +25,7 @@ const infractionSchema = new mongoose.Schema(
             enum: ['trade', 'match', 'league', 'server'],
             required: true,
         },
-        infractionDetauls: {
+        infractionDetails: {
             type: String,
             required: true,
         },
@@ -36,9 +36,11 @@ const infractionSchema = new mongoose.Schema(
         },
         penalty: {
             type: String,
-            required: false,
         }
-    }, {_id: false}
+    },
+    {
+        timestamps: true,
+    }
 )
 
 const playerSchema = new mongoose.Schema(
@@ -49,21 +51,38 @@ const playerSchema = new mongoose.Schema(
         },
         lastName: {
             type: String,
-            required: false,
+        },
+        discordId: {
+            type: String,
+            required: true,
+            unique: true,
+            index: true,
         },
         admin: {
             type: Boolean,
-            required: true,
+            default: false,
         },
         contactInfo: {
             type: [contactSchema],
             default: [],
-            required: true,
         },
         infractions: {
             type: [infractionSchema],
             default: [],
-            required: true
-        }
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
+    },
+    {
+        timestamps: true,
     }
 )
+
+module.exports = mongoose.model('Player', playerSchema)
